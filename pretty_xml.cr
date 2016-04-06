@@ -4,7 +4,7 @@
 # Reads XML from STDIN and outputs it formatted and colored to STDOUT.
 # Incomplete implementation, adapted from crystal json sample. Just for trying out crystal.
 #
-# Usage: echo '<?xml version="1.0"?><name><first>Cahit</first><last>Arf</last></name>' | pretty_xml
+# Usage: echo '<?xml version="1.0"?><name><first>Cahit</first><last>Arf</last></name>' | ./pretty_xml
 
 require "xml"
 require "colorize"
