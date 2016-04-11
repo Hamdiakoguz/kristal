@@ -70,7 +70,16 @@ class PrettyXMLPrinter
       print_attr(attr.name, attr.content)
     end
 
-    new_namespaces = node.namespace_scopes - @namespaces
+    all_namespaces = [] of XML::Namespace
+    ns_list = LibXML.xmlGetNsList((@doc.to_unsafe as LibXML::Doc*), node.to_unsafe)
+    if ns_list
+      while ns_list.value
+        all_namespaces << XML::Namespace.new(@doc, ns_list.value)
+        ns_list += 1
+      end
+    end
+
+    new_namespaces = all_namespaces - @namespaces
     new_namespaces.each do |ns|
       prefix = ns.prefix
       next unless prefix
