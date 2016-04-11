@@ -13,6 +13,22 @@ class PrettyXMLPrinter
   def initialize(@input, @output)
     @doc = XML.parse(@input)
     @indent = 0
+    @namespaces = [] of XML::Namespace
+  end
+
+  @@colors = {
+    :symbol => :blue,
+    :attr   => :yellow,
+    :tag    => :red,
+    :text   => :white
+  }
+
+  def colors=(val)
+    @@colors = val
+  end
+
+  def colors
+    @@colors
   end
 
   def print
@@ -20,49 +36,100 @@ class PrettyXMLPrinter
   end
 
   def print_node(node)
-    if node.type == XML::Type::TEXT_NODE
-      unless node.content.nil? || node.content =~ /^\s*$/
-        # print node.type
-        print "\n"
-        print_indent
-        print node.content
+    case node.type
+    when XML::Type::ELEMENT_NODE
+      print_element(node)
+    when XML::Type::TEXT_NODE
+      unless node.content =~ /^\s*$/
+        p node, :text
+        @skip_indent = true
       end
-      return
+    when XML::Type::DOCUMENT_NODE
+      print_symbol "<?"
+      p "xml", :tag
+      print_attr(" version", node.version) if node.version
+      print_attr(" encoding", node.encoding) if node.encoding
+      print_symbol "?>"
+      node.children.each{|c| print_node(c) }
+    else
+      print node.type
+      print node.name
+      print node.content
+      print node
     end
-
-    print "\n"
-    print_indent
-
-    open_tag(node)
-
-    node.children.each do |child|
-      @indent += 1
-      print_node(child)
-      @indent -= 1
-    end
-
-    print "\n"
-    print_indent
-    close_tag(node)
   end
 
-  def open_tag(node)
-    print "<".colorize.blue
-    print node.name.colorize.red
+  def open_tag(node, self_closing = false)
+    print "\n"
+    print_indent
+
+    print_symbol "<"
+    print_name(node)
     node.attributes.each do |attr|
       print ' '
-      print attr.name.colorize.yellow
-      print "=\"".colorize.blue
-      print attr.content.colorize.yellow
-      print '"'.colorize.blue
+      print_attr(attr.name, attr.content)
     end
-    print ">".colorize.blue
+
+    new_namespaces = node.namespace_scopes - @namespaces
+    new_namespaces.each do |ns|
+      prefix = ns.prefix
+      next unless prefix
+
+      @namespaces << ns
+      print ' '
+      print_attr("xmlns:" + prefix, ns.href)
+    end
+
+    print_symbol " /" if self_closing
+    print_symbol ">"
+  end
+
+  def print_element(node)
+    children = node.children
+    if children.size == 0
+      open_tag(node, true)
+    else
+      open_tag(node)
+      @indent += 1
+      children.each do |child|
+        print_node(child)
+      end
+      @indent -= 1
+      close_tag(node)
+    end
   end
 
   def close_tag(node)
+    if @skip_indent
+      @skip_indent = false
+    else
+      print "\n"
+      print_indent
+    end
+
     print "</".colorize.blue
-    print node.name.colorize.red
+    print_name(node)
     print ">".colorize.blue
+  end
+
+  def print_name(node)
+    ns = node.namespace
+    if ns
+      p ns.prefix, :tag
+      print_symbol ":"
+    end
+    p node.name, :tag
+  end
+
+  def print_attr(key, value)
+    p key, :attr
+    p "=\"", :symbol
+    p value, :attr
+    p "\"", :symbol
+  end
+
+  def print_symbol(value)
+    p value, :symbol
   end
 
   def print_indent
@@ -71,6 +138,10 @@ class PrettyXMLPrinter
 
   def print(value)
     @output << value
+  end
+
+  def p(value, color)
+    print value.to_s.colorize(colors[color])
   end
 end
 
