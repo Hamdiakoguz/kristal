@@ -5,6 +5,7 @@
 # Incomplete implementation, adapted from crystal json sample. Just for trying out crystal.
 #
 # Usage: echo '<?xml version="1.0"?><name><first>Cahit</first><last>Arf</last></name>' | ./pretty_xml
+# Usage: echo "$(<test.xml)" | ./pretty_xml
 
 require "xml"
 require "colorize"
@@ -20,7 +21,7 @@ class PrettyXMLPrinter
     :symbol => :blue,
     :attr   => :yellow,
     :tag    => :red,
-    :text   => :white
+    :text   => :white,
   }
 
   def colors=(val)
@@ -50,7 +51,7 @@ class PrettyXMLPrinter
       print_attr(" version", node.version) if node.version
       print_attr(" encoding", node.encoding) if node.encoding
       print_symbol "?>"
-      node.children.each{|c| print_node(c) }
+      node.children.each { |c| print_node(c) }
     else
       print node.type
       print node.name
