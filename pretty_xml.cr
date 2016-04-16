@@ -14,7 +14,6 @@ class PrettyXMLPrinter
   def initialize(@input, @output)
     @doc = XML.parse(@input)
     @indent = 0
-    @namespaces = [] of XML::Namespace
   end
 
   @@colors = {
@@ -71,21 +70,10 @@ class PrettyXMLPrinter
       print_attr(attr.name, attr.content)
     end
 
-    all_namespaces = [] of XML::Namespace
-    ns_list = LibXML.xmlGetNsList((@doc.to_unsafe as LibXML::Doc*), node.to_unsafe)
-    if ns_list
-      while ns_list.value
-        all_namespaces << XML::Namespace.new(@doc, ns_list.value)
-        ns_list += 1
-      end
-    end
-
-    new_namespaces = all_namespaces - @namespaces
-    new_namespaces.each do |ns|
+    namespace_definitions(node).each do |ns|
       prefix = ns.prefix
       next unless prefix
 
-      @namespaces << ns
       print ' '
       print_attr("xmlns:" + prefix, ns.href)
     end
@@ -153,6 +141,20 @@ class PrettyXMLPrinter
   def p(value, color)
     print value.to_s.colorize(colors[color])
   end
+
+  def namespace_definitions(node : XML::Node)
+    namespaces = [] of XML::Namespace
+
+    node_ptr = node.to_unsafe
+    ns_ptr = node_ptr.value.ns_def
+    while ns_ptr
+      namespaces << XML::Namespace.new(node.document, ns_ptr)
+      ns_ptr = ns_ptr.value.next
+    end
+
+    namespaces
+  end
+
 end
 
 printer = PrettyXMLPrinter.new(STDIN, STDOUT)
