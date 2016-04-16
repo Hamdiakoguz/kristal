@@ -41,7 +41,7 @@ class PrettyXMLPrinter
       print_element(node)
     when XML::Type::TEXT_NODE
       unless node.content =~ /^\s*$/
-        print_text(node)
+        print_text(node.to_s)
         @skip_indent = true
       end
     when XML::Type::DOCUMENT_NODE
@@ -120,26 +120,20 @@ class PrettyXMLPrinter
   end
 
   private def print_attr(key, value)
-    p key, :attr
-    p "=\"", :symbol
-    p value, :attr
-    p "\"", :symbol
+    print_attr(key)
+    print_symbol(%(="))
+    print_attr(value)
+    print_symbol(%(\"))
   end
 
-  private def print_symbol(value)
-    p value, :symbol
-  end
+  {% for kind in %w(attr symbol tag_name text) %}
+    private def print_{{kind.id}}(value : String?)
+      p value, :{{kind}}
+    end
+  {% end %}
 
   private def print_indent
     @indent.times { @output << "  " }
-  end
-
-  private def print_text(value)
-    p value, :text
-  end
-
-  private def print_tag_name(value)
-    p value, :tag_name
   end
 
   private def p(value)
