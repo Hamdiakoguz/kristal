@@ -41,7 +41,7 @@ class PrettyXMLPrinter
       print_element(node)
     when XML::Type::TEXT_NODE
       unless node.content =~ /^\s*$/
-        p node, :text
+        print_text(node)
         @skip_indent = true
       end
     when XML::Type::DOCUMENT_NODE
@@ -132,6 +132,10 @@ class PrettyXMLPrinter
 
   def print_indent
     @indent.times { @output << "  " }
+  end
+
+  def print_text(value)
+    p value, :text
   end
 
   def print(value)
