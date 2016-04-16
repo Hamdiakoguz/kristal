@@ -17,10 +17,10 @@ class PrettyXMLPrinter
   end
 
   @@colors = {
-    :symbol => :blue,
-    :attr   => :yellow,
-    :tag    => :red,
-    :text   => :white,
+    :symbol   => :blue,
+    :attr     => :yellow,
+    :tag_name => :red,
+    :text     => :white,
   }
 
   def colors=(val)
@@ -45,11 +45,11 @@ class PrettyXMLPrinter
         @skip_indent = true
       end
     when XML::Type::DOCUMENT_NODE
-      print_symbol "<?"
-      p "xml", :tag
+      print_symbol("<?")
+      print_tag_name("xml")
       print_attr(" version", node.version) if node.version
       print_attr(" encoding", node.encoding) if node.encoding
-      print_symbol "?>"
+      print_symbol("?>")
       node.children.each { |c| print_node(c) }
     else
       print node.type
@@ -113,10 +113,10 @@ class PrettyXMLPrinter
   def print_name(node)
     ns = node.namespace
     if ns
-      p ns.prefix, :tag
-      print_symbol ":"
+      print_tag_name(ns.prefix)
+      print_symbol(":")
     end
-    p node.name, :tag
+    print_tag_name(node.name)
   end
 
   def print_attr(key, value)
@@ -136,6 +136,10 @@ class PrettyXMLPrinter
 
   def print_text(value)
     p value, :text
+  end
+
+  def print_tag_name(value)
+    p value, :tag_name
   end
 
   def print(value)
