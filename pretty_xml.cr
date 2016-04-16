@@ -35,7 +35,7 @@ class PrettyXMLPrinter
     print_node(@doc)
   end
 
-  def print_node(node)
+  private def print_node(node)
     case node.type
     when XML::Type::ELEMENT_NODE
       print_element(node)
@@ -59,7 +59,7 @@ class PrettyXMLPrinter
     end
   end
 
-  def open_tag(node, self_closing = false)
+  private def open_tag(node, self_closing = false)
     p "\n"
     print_indent
 
@@ -82,7 +82,7 @@ class PrettyXMLPrinter
     print_symbol ">"
   end
 
-  def print_element(node)
+  private def print_element(node)
     children = node.children
     if children.size == 0
       open_tag(node, true)
@@ -97,7 +97,7 @@ class PrettyXMLPrinter
     end
   end
 
-  def close_tag(node)
+  private def close_tag(node)
     if @skip_indent
       @skip_indent = false
     else
@@ -110,7 +110,7 @@ class PrettyXMLPrinter
     print_symbol(">")
   end
 
-  def print_name(node)
+  private def print_name(node)
     ns = node.namespace
     if ns
       print_tag_name(ns.prefix)
@@ -119,38 +119,38 @@ class PrettyXMLPrinter
     print_tag_name(node.name)
   end
 
-  def print_attr(key, value)
+  private def print_attr(key, value)
     p key, :attr
     p "=\"", :symbol
     p value, :attr
     p "\"", :symbol
   end
 
-  def print_symbol(value)
+  private def print_symbol(value)
     p value, :symbol
   end
 
-  def print_indent
+  private def print_indent
     @indent.times { @output << "  " }
   end
 
-  def print_text(value)
+  private def print_text(value)
     p value, :text
   end
 
-  def print_tag_name(value)
+  private def print_tag_name(value)
     p value, :tag_name
   end
 
-  def p(value)
+  private def p(value)
     @output << value
   end
 
-  def p(value, color)
+  private def p(value, color)
     p value.to_s.colorize(colors[color])
   end
 
-  def namespace_definitions(node : XML::Node)
+  private def namespace_definitions(node : XML::Node)
     namespaces = [] of XML::Namespace
 
     node_ptr = node.to_unsafe
