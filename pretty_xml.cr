@@ -52,21 +52,21 @@ class PrettyXMLPrinter
       print_symbol("?>")
       node.children.each { |c| print_node(c) }
     else
-      print node.type
-      print node.name
-      print node.content
-      print node
+      p node.type
+      p node.name
+      p node.content
+      p node
     end
   end
 
   def open_tag(node, self_closing = false)
-    print "\n"
+    p "\n"
     print_indent
 
     print_symbol "<"
     print_name(node)
     node.attributes.each do |attr|
-      print ' '
+      p ' '
       print_attr(attr.name, attr.content)
     end
 
@@ -74,7 +74,7 @@ class PrettyXMLPrinter
       prefix = ns.prefix
       next unless prefix
 
-      print ' '
+      p ' '
       print_attr("xmlns:" + prefix, ns.href)
     end
 
@@ -101,7 +101,7 @@ class PrettyXMLPrinter
     if @skip_indent
       @skip_indent = false
     else
-      print "\n"
+      p "\n"
       print_indent
     end
 
@@ -142,12 +142,12 @@ class PrettyXMLPrinter
     p value, :tag_name
   end
 
-  def print(value)
+  def p(value)
     @output << value
   end
 
   def p(value, color)
-    print value.to_s.colorize(colors[color])
+    p value.to_s.colorize(colors[color])
   end
 
   def namespace_definitions(node : XML::Node)
