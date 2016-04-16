@@ -105,9 +105,9 @@ class PrettyXMLPrinter
       print_indent
     end
 
-    print "</".colorize.blue
+    print_symbol("</")
     print_name(node)
-    print ">".colorize.blue
+    print_symbol(">")
   end
 
   def print_name(node)
