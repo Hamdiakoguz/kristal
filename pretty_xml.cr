@@ -11,11 +11,7 @@ require "xml"
 require "colorize"
 
 class PrettyXMLPrinter
-  def initialize(@input, @output)
-    @doc = XML.parse(@input)
-    @indent = 0
-  end
-
+  @current_indent = 0
   @@colors = {
     :symbol   => :blue,
     :attr     => :yellow,
@@ -23,26 +19,38 @@ class PrettyXMLPrinter
     :text     => :white,
   }
 
-  def colors=(val)
-    @@colors = val
+  def initialize(@indent : Int = 2, @compact : Bool = true, @colorize : Bool = true, @colors : Hash(Symbol, Symbol) = @@colors)
+    @input = ""
+    @output = MemoryIO.new
   end
 
-  def colors
-    @@colors
+  def print(@input : (String | IO), @output)
+    print
   end
 
-  def print
-    print_node(@doc)
+  def print(@input : (String | IO))
+    print
+    @output.to_s
   end
 
-  private def print_node(node)
+  private def print
+    @doc = XML.parse(@input)
+    @current_indent = 0
+    print_node(@doc.not_nil!)
+  end
+
+  private def print_node(node : XML::Node)
     case node.type
     when XML::Type::ELEMENT_NODE
       print_element(node)
     when XML::Type::TEXT_NODE
       unless node.content =~ /^\s*$/
+        unless @compact
+          p "\n"
+          print_indent
+        end
         print_text(node.to_s)
-        @skip_indent = true
+        @skip_indent = true if @compact
       end
     when XML::Type::DOCUMENT_NODE
       print_symbol("<?")
@@ -88,11 +96,11 @@ class PrettyXMLPrinter
       open_tag(node, true)
     else
       open_tag(node)
-      @indent += 1
+      @current_indent += 1
       children.each do |child|
         print_node(child)
       end
-      @indent -= 1
+      @current_indent -= 1
       close_tag(node)
     end
   end
@@ -133,7 +141,7 @@ class PrettyXMLPrinter
   {% end %}
 
   private def print_indent
-    @indent.times { @output << "  " }
+    @current_indent.times { @output << (" " * @indent) }
   end
 
   private def p(value)
@@ -141,7 +149,10 @@ class PrettyXMLPrinter
   end
 
   private def p(value, color)
-    p value.to_s.colorize(colors[color])
+    if @colorize
+      value = value.colorize(@colors[color])
+    end
+    p value
   end
 
   private def namespace_definitions(node : XML::Node)
@@ -156,9 +167,8 @@ class PrettyXMLPrinter
 
     namespaces
   end
-
 end
 
-printer = PrettyXMLPrinter.new(STDIN, STDOUT)
-printer.print
+printer = PrettyXMLPrinter.new
+printer.print(STDIN, STDOUT)
 STDOUT.puts
